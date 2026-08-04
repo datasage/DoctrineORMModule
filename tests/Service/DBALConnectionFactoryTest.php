@@ -18,6 +18,8 @@ use Laminas\ServiceManager\ServiceManager;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
+use function method_exists;
+
 /** @covers \DoctrineORMModule\Service\DBALConnectionFactory */
 class DBALConnectionFactoryTest extends TestCase
 {
@@ -146,6 +148,12 @@ class DBALConnectionFactoryTest extends TestCase
         $this->serviceManager->setService('Configuration', $config);
         $this->serviceManager->setService('platform_service', $platformMock);
 
+        // DBAL 4 removed injecting a platform through connection params; the
+        // driver always determines it.
+        if (! method_exists(DBALConnection::class, 'getEventManager')) {
+            $this->markTestSkipped('DBAL 4 no longer accepts a platform connection parameter.');
+        }
+
         $dbal     = ($this->factory)($this->serviceManager, DBALConnection::class);
         $platform = $dbal->getDatabasePlatform();
         $this->assertSame($platformMock, $platform);
@@ -170,6 +178,11 @@ class DBALConnectionFactoryTest extends TestCase
         $this->serviceManager->setService('doctrine.configuration.orm_default', $configurationMock);
         $this->serviceManager->setService('config', $config);
         $this->serviceManager->setService('Configuration', $config);
+
+        // DBAL 4 always nests transactions with savepoints.
+        if (! method_exists(DBALConnection::class, 'getEventManager')) {
+            $this->markTestSkipped('DBAL 4 always uses savepoints for nested transactions.');
+        }
 
         $dbal = ($this->factory)($this->serviceManager, DBALConnection::class);
         $this->assertFalse($dbal->getNestTransactionsWithSavepoints());

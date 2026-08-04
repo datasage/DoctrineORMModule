@@ -18,6 +18,8 @@ use function is_string;
 use function method_exists;
 use function sprintf;
 
+use const PHP_VERSION_ID;
+
 final class ConfigurationFactory extends DoctrineConfigurationFactory
 {
     /**
@@ -42,14 +44,24 @@ final class ConfigurationFactory extends DoctrineConfigurationFactory
         $config->setCustomStringFunctions($options->getStringFunctions());
         $config->setCustomNumericFunctions($options->getNumericFunctions());
 
-        $config->setClassMetadataFactoryName($options->getClassMetadataFactoryName());
-
-        foreach ($options->getNamedQueries() as $name => $query) {
-            $config->addNamedQuery($name, $query);
+        // ORM 3 types this parameter as string, where ORM 2 left it untyped and
+        // tolerated null. The option is optional, so only apply it when set.
+        $classMetadataFactoryName = $options->getClassMetadataFactoryName();
+        if ($classMetadataFactoryName !== null) {
+            $config->setClassMetadataFactoryName($classMetadataFactoryName);
         }
 
-        foreach ($options->getNamedNativeQueries() as $name => $query) {
-            $config->addNamedNativeQuery($name, $query['sql'], new $query['rsm']());
+        // Named queries were removed in ORM 3.
+        if (method_exists($config, 'addNamedQuery')) {
+            foreach ($options->getNamedQueries() as $name => $query) {
+                $config->addNamedQuery($name, $query);
+            }
+        }
+
+        if (method_exists($config, 'addNamedNativeQuery')) {
+            foreach ($options->getNamedNativeQueries() as $name => $query) {
+                $config->addNamedNativeQuery($name, $query['sql'], new $query['rsm']());
+            }
         }
 
         foreach ($options->getCustomHydrationModes() as $modeName => $hydrator) {
@@ -158,6 +170,14 @@ final class ConfigurationFactory extends DoctrineConfigurationFactory
         $className = $options->getDefaultRepositoryClassName();
         if ($className) {
             $config->setDefaultRepositoryClassName($className);
+        }
+
+        // ORM 3 builds lazy proxies with symfony/var-exporter's LazyGhostTrait,
+        // which Symfony 8 removed in favour of PHP's native lazy objects. Where
+        // the ORM can use those, turn them on; on PHP 8.3 and below the older
+        // var-exporter is installed and the trait is still there.
+        if (PHP_VERSION_ID >= 80400 && method_exists($config, 'enableNativeLazyObjects')) {
+            $config->enableNativeLazyObjects(true);
         }
 
         $this->setupDBALConfiguration($serviceLocator, $config);

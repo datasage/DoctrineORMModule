@@ -11,6 +11,29 @@ parameters:
           identifier: method.alreadyNarrowedType
         -
           identifier: function.alreadyNarrowedType
+        # Both ORM 2 and ORM 3 (and DBAL 3 and 4) are supported, so the code
+        # deliberately references APIs that only one major provides and guards
+        # them at runtime. Analysis only ever sees the highest versions.
+        -
+          identifier: function.impossibleType
+          path: src/Service/ConfigurationFactory.php
+        -
+          identifier: arguments.count
+          path: src/Service/DBALConnectionFactory.php
+        -
+          identifier: class.notFound
+          paths:
+            - src/Service/ReservedWordsCommandFactory.php
+            - tests/CliConfiguratorTest.php
+        -
+          identifier: return.type
+          path: src/CliConfigurator.php
+        # symfony/console is supported from 6.2 to 8.x. Application::add() was
+        # replaced by addCommand() in 7.4 and removed in 8.0, so the fallback is
+        # unreachable when analysing against the highest supported version.
+        -
+          identifier: method.notFound
+          path: src/CliConfigurator.php
         # ServiceListener::addServiceManager() is documented as taking a string,
         # but explicitly handles a ServiceManager instance too - which is what
         # laminas-mvc itself passed for the "service_manager" key.

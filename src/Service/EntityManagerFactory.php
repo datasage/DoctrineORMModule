@@ -27,12 +27,16 @@ final class EntityManagerFactory extends AbstractFactory
         $connection = $container->get($options->getConnection());
         $config     = $container->get($options->getConfiguration());
 
-        // initializing the resolver
-        // @todo should actually attach it to a fetched event manager here, and not
-        //       rely on its factory code
-        $container->get($options->getEntityResolver());
+        // The entity resolver factory attaches ResolveTargetEntityListener and
+        // returns the event manager it registered it on.
+        $eventManager = $container->get($options->getEntityResolver());
 
-        return EntityManager::create($connection, $config);
+        // EntityManager::create() was removed in ORM 3; the constructor is
+        // public in both ORM 2.20 and ORM 3. The event manager has to be passed
+        // explicitly: DBAL 4 dropped Connection::getEventManager(), so the
+        // entity manager would otherwise build an empty one and the resolver
+        // would never see onClassMetadataNotFound.
+        return new EntityManager($connection, $config, $eventManager);
     }
 
     public function getOptionsClass(): string

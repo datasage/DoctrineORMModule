@@ -16,6 +16,7 @@ use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputOption;
 
 use function class_exists;
+use function method_exists;
 
 class CliConfigurator
 {
@@ -67,10 +68,21 @@ class CliConfigurator
     {
         $commands = $this->getAvailableCommands();
         foreach ($commands as $commandName) {
+            // Some commands only exist for particular DBAL or ORM majors.
+            if (! $this->container->has($commandName)) {
+                continue;
+            }
+
             $command = $this->container->get($commandName);
             $command->getDefinition()->addOption($this->createObjectManagerInputOption());
 
-            $cli->add($command);
+            // Application::add() was replaced by addCommand() in Symfony 7.4
+            // and removed in Symfony 8.
+            if (method_exists($cli, 'addCommand')) {
+                $cli->addCommand($command);
+            } else {
+                $cli->add($command);
+            }
         }
 
         $objectManager = $this->container->get($this->getObjectManagerName());
@@ -84,10 +96,15 @@ class CliConfigurator
     /** @return array<string,Helper> */
     private function getHelpers(EntityManagerInterface $objectManager): array
     {
-        return [
-            'dialog' => new QuestionHelper(),
-            'em' => new EntityManagerHelper($objectManager),
-        ];
+        $helpers = ['dialog' => new QuestionHelper()];
+
+        // ORM 3 removed the helper set in favour of the EntityManagerProvider
+        // its commands are constructed with.
+        if (class_exists(EntityManagerHelper::class)) {
+            $helpers['em'] = new EntityManagerHelper($objectManager);
+        }
+
+        return $helpers;
     }
 
     private function createObjectManagerInputOption(): InputOption
@@ -103,10 +120,23 @@ class CliConfigurator
 
     private function getObjectManagerName(): string
     {
+        return self::resolveObjectManagerName($this->defaultObjectManagerName);
+    }
+
+    /**
+     * Resolves the object manager service name from the --object-manager option.
+     *
+     * Shared with EntityManagerProviderFactory so that ORM 3 commands, which
+     * receive an EntityManagerProvider rather than a helper set, still honour
+     * the option.
+     */
+    public static function resolveObjectManagerName(
+        string $default = 'doctrine.entitymanager.orm_default',
+    ): string {
         $arguments = new ArgvInput();
 
         if (! $arguments->hasParameterOption('--object-manager')) {
-            return $this->defaultObjectManagerName;
+            return $default;
         }
 
         return $arguments->getParameterOption('--object-manager');

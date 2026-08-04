@@ -1,15 +1,40 @@
 <?php
 
 use Doctrine\DBAL\Tools\Console\Command\ImportCommand;
+use Doctrine\DBAL\Tools\Console\Command\ReservedWordsCommand;
 use Doctrine\Laminas\Hydrator\DoctrineObject;
 use Doctrine\ORM\Tools\Console\Command;
+use Doctrine\ORM\Tools\Console\Command\AbstractEntityManagerCommand;
+use Doctrine\ORM\Tools\Console\EntityManagerProvider;
 use Doctrine\Persistence\Mapping\Driver\MappingDriverChain;
 use DoctrineModule\Form\Element;
 use DoctrineORMModule\CliConfigurator;
 use DoctrineORMModule\Service;
 
+// ORM console commands. Which of these exist depends on the ORM major: ORM 3
+// removed the schema conversion and code generation commands, and constructs
+// the rest with an EntityManagerProvider rather than a console helper set.
+$ormCommands = [
+    'doctrine.orm_cmd.clear_cache_metadata' => Command\ClearCache\MetadataCommand::class,
+    'doctrine.orm_cmd.clear_cache_result' => Command\ClearCache\ResultCommand::class,
+    'doctrine.orm_cmd.clear_cache_query' => Command\ClearCache\QueryCommand::class,
+    'doctrine.orm_cmd.schema_tool_create' => Command\SchemaTool\CreateCommand::class,
+    'doctrine.orm_cmd.schema_tool_update' => Command\SchemaTool\UpdateCommand::class,
+    'doctrine.orm_cmd.schema_tool_drop' => Command\SchemaTool\DropCommand::class,
+    'doctrine.orm_cmd.convert_d1_schema' => Command\ConvertDoctrine1SchemaCommand::class,
+    'doctrine.orm_cmd.generate_entities' => Command\GenerateEntitiesCommand::class,
+    'doctrine.orm_cmd.generate_proxies' => Command\GenerateProxiesCommand::class,
+    'doctrine.orm_cmd.convert_mapping' => Command\ConvertMappingCommand::class,
+    'doctrine.orm_cmd.run_dql' => Command\RunDqlCommand::class,
+    'doctrine.orm_cmd.validate_schema' => Command\ValidateSchemaCommand::class,
+    'doctrine.orm_cmd.info' => Command\InfoCommand::class,
+    'doctrine.orm_cmd.ensure_production_settings' => Command\EnsureProductionSettingsCommand::class,
+    'doctrine.orm_cmd.generate_repositories' => Command\GenerateRepositoriesCommand::class,
+];
+
 $result = [
     'doctrine' => [
+        'orm_commands' => $ormCommands,
         'connection' => [
             // Configuration for service `doctrine.connection.orm_default` service
             'orm_default' => [
@@ -178,25 +203,9 @@ $result = [
             'Doctrine\ORM\EntityManager' => Service\EntityManagerAliasCompatFactory::class,
             // DBAL commands
             'doctrine.dbal_cmd.runsql' => Service\RunSqlCommandFactory::class,
-            'doctrine.dbal_cmd.reserved_words'  => Service\ReservedWordsCommandFactory::class,
-        ],
-        'invokables' => [
-            // ORM Commands
-            'doctrine.orm_cmd.clear_cache_metadata' => Command\ClearCache\MetadataCommand::class,
-            'doctrine.orm_cmd.clear_cache_result' => Command\ClearCache\ResultCommand::class,
-            'doctrine.orm_cmd.clear_cache_query' => Command\ClearCache\QueryCommand::class,
-            'doctrine.orm_cmd.schema_tool_create' => Command\SchemaTool\CreateCommand::class,
-            'doctrine.orm_cmd.schema_tool_update' => Command\SchemaTool\UpdateCommand::class,
-            'doctrine.orm_cmd.schema_tool_drop' => Command\SchemaTool\DropCommand::class,
-            'doctrine.orm_cmd.convert_d1_schema' => Command\ConvertDoctrine1SchemaCommand::class,
-            'doctrine.orm_cmd.generate_entities' => Command\GenerateEntitiesCommand::class,
-            'doctrine.orm_cmd.generate_proxies' => Command\GenerateProxiesCommand::class,
-            'doctrine.orm_cmd.convert_mapping' => Command\ConvertMappingCommand::class,
-            'doctrine.orm_cmd.run_dql' => Command\RunDqlCommand::class,
-            'doctrine.orm_cmd.validate_schema' => Command\ValidateSchemaCommand::class,
-            'doctrine.orm_cmd.info' => Command\InfoCommand::class,
-            'doctrine.orm_cmd.ensure_production_settings' => Command\EnsureProductionSettingsCommand::class,
-            'doctrine.orm_cmd.generate_repositories' => Command\GenerateRepositoriesCommand::class,
+
+            // ORM 3 constructs its console commands with this.
+            EntityManagerProvider::class => Service\EntityManagerProviderFactory::class,
         ],
     ],
 
@@ -231,6 +240,26 @@ $result = [
     ],
 
 ];
+
+// DBAL 4 removed the reserved words command.
+if (class_exists(ReservedWordsCommand::class)) {
+    $result['service_manager']['factories']['doctrine.dbal_cmd.reserved_words']
+        = Service\ReservedWordsCommandFactory::class;
+}
+
+foreach ($ormCommands as $commandServiceName => $commandClass) {
+    if (! class_exists($commandClass)) {
+        continue;
+    }
+
+    if (is_a($commandClass, AbstractEntityManagerCommand::class, true)) {
+        $result['service_manager']['factories'][$commandServiceName] = Service\EntityManagerCommandFactory::class;
+
+        continue;
+    }
+
+    $result['service_manager']['invokables'][$commandServiceName] = $commandClass;
+}
 
 if (class_exists(ImportCommand::class)) {
     $result['service_manager']['invokables']['doctrine.dbal_cmd.import'] = ImportCommand::class;

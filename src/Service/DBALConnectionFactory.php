@@ -16,6 +16,7 @@ use function array_key_exists;
 use function array_merge;
 use function assert;
 use function is_string;
+use function method_exists;
 
 /**
  * DBAL Connection ServiceManager factory
@@ -58,13 +59,20 @@ final class DBALConnectionFactory extends AbstractFactory
         $configuration = $serviceLocator->get($options->getConfiguration());
         $eventManager  = $serviceLocator->get($options->getEventManager());
 
-        $connection = DriverManager::getConnection($params, $configuration, $eventManager);
+        // DBAL 4 removed the event system, and with it this argument.
+        $connection = method_exists(Connection::class, 'getEventManager')
+            ? DriverManager::getConnection($params, $configuration, $eventManager)
+            : DriverManager::getConnection($params, $configuration);
+
         foreach ($options->getDoctrineTypeMappings() as $dbType => $doctrineType) {
             $connection->getDatabasePlatform()->registerDoctrineTypeMapping($dbType, $doctrineType);
         }
 
-        foreach ($options->getDoctrineCommentedTypes() as $type) {
-            $connection->getDatabasePlatform()->markDoctrineTypeCommented(Type::getType($type));
+        // DBAL 4 dropped type comments entirely, along with this method.
+        if (method_exists($connection->getDatabasePlatform(), 'markDoctrineTypeCommented')) {
+            foreach ($options->getDoctrineCommentedTypes() as $type) {
+                $connection->getDatabasePlatform()->markDoctrineTypeCommented(Type::getType($type));
+            }
         }
 
         if ($options->useSavepoints()) {

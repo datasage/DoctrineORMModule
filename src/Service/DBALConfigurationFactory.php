@@ -47,12 +47,15 @@ class DBALConfigurationFactory implements FactoryInterface
         $options = $this->getOptions($serviceLocator);
         $config->setResultCache($serviceLocator->get($options->resultCache));
 
-        $sqlLogger = $options->sqlLogger;
-        if (is_string($sqlLogger) && $serviceLocator->has($sqlLogger)) {
-            $sqlLogger = $serviceLocator->get($sqlLogger);
-        }
+        // DBAL 4 removed the SQL logger in favour of middleware based logging.
+        if (method_exists($config, 'setSQLLogger')) {
+            $sqlLogger = $options->sqlLogger;
+            if (is_string($sqlLogger) && $serviceLocator->has($sqlLogger)) {
+                $sqlLogger = $serviceLocator->get($sqlLogger);
+            }
 
-        $config->setSQLLogger($sqlLogger);
+            $config->setSQLLogger($sqlLogger);
+        }
 
         if (method_exists($config, 'setMiddlewares')) {
             $middlewares = [];

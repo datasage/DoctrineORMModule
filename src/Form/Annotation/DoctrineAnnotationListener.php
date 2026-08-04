@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DoctrineORMModule\Form\Annotation;
 
+use ArrayAccess;
 use ArrayObject;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ObjectManager;
@@ -16,6 +17,7 @@ use Laminas\Form\Element as LaminasFormElement;
 use function array_key_exists;
 use function array_merge;
 use function in_array;
+use function is_string;
 
 class DoctrineAnnotationListener extends AbstractListenerAggregate
 {
@@ -121,7 +123,8 @@ class DoctrineAnnotationListener extends AbstractListenerAggregate
     public function handleFilterField(EventInterface $event): void
     {
         $metadata = $event->getParam('metadata');
-        if (! $metadata || ! $metadata->hasField($event->getParam('name'))) {
+        $name     = $event->getParam('name');
+        if (! $metadata || ! is_string($name) || ! $metadata->hasField($name)) {
             return;
         }
 
@@ -199,7 +202,8 @@ class DoctrineAnnotationListener extends AbstractListenerAggregate
         $metadata  = $event->getParam('metadata');
         $inputSpec = $event->getParam('inputSpec');
 
-        if (! $metadata || ! $metadata->hasField($event->getParam('name'))) {
+        $name = $event->getParam('name');
+        if (! $metadata || ! is_string($name) || ! $metadata->hasField($name)) {
             return;
         }
 
@@ -312,23 +316,35 @@ class DoctrineAnnotationListener extends AbstractListenerAggregate
         }
     }
 
-    /** @return mixed[]|null */
-    protected function getFieldMapping(EventInterface $event): array|null
+    /**
+     * ORM 3 returns mapping value objects where ORM 2 returned arrays. Those
+     * objects implement ArrayAccess, so callers reading offsets work with both.
+     *
+     * @return mixed[]|ArrayAccess<string,mixed>|null
+     */
+    protected function getFieldMapping(EventInterface $event): array|ArrayAccess|null
     {
         $metadata = $event->getParam('metadata');
-        if ($metadata && $metadata->hasField($event->getParam('name'))) {
-            return $metadata->getFieldMapping($event->getParam('name'));
+        $name     = $event->getParam('name');
+        if ($metadata && is_string($name) && $metadata->hasField($name)) {
+            return $metadata->getFieldMapping($name);
         }
 
         return null;
     }
 
-    /** @return mixed[]|null */
-    protected function getAssociationMapping(EventInterface $event): array|null
+    /**
+     * ORM 3 returns mapping value objects where ORM 2 returned arrays. Those
+     * objects implement ArrayAccess, so callers reading offsets work with both.
+     *
+     * @return mixed[]|ArrayAccess<string,mixed>|null
+     */
+    protected function getAssociationMapping(EventInterface $event): array|ArrayAccess|null
     {
         $metadata = $event->getParam('metadata');
-        if ($metadata && $metadata->hasAssociation($event->getParam('name'))) {
-            return $metadata->getAssociationMapping($event->getParam('name'));
+        $name     = $event->getParam('name');
+        if ($metadata && is_string($name) && $metadata->hasAssociation($name)) {
+            return $metadata->getAssociationMapping($name);
         }
 
         return null;

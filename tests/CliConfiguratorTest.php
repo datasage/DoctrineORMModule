@@ -52,6 +52,8 @@ class CliConfiguratorTest extends TestCase
         $cliConfigurator = new CliConfigurator($this->serviceManager);
         $cliConfigurator->configure($application);
 
+        $this->skipWithoutEntityManagerHelper();
+
         $entityManagerHelper = $application->getHelperSet()->get('entityManager');
         assert($entityManagerHelper instanceof EntityManagerHelper);
 
@@ -85,6 +87,8 @@ class CliConfiguratorTest extends TestCase
         $cliConfigurator = new CliConfigurator($this->serviceManager);
         $cliConfigurator->configure($application);
 
+        $this->skipWithoutEntityManagerHelper();
+
         $entityManagerHelper = $application->getHelperSet()->get('entityManager');
         assert($entityManagerHelper instanceof EntityManagerHelper);
 
@@ -99,12 +103,25 @@ class CliConfiguratorTest extends TestCase
         $cliConfigurator = new CliConfigurator($this->serviceManager);
         $cliConfigurator->configure($application);
 
+        $this->skipWithoutEntityManagerHelper();
+
         $helperSet = $application->getHelperSet();
 
         $emHelper = $helperSet->get('em');
         assert($emHelper instanceof EntityManagerHelper);
         $this->assertInstanceOf(EntityManagerHelper::class, $emHelper);
         $this->assertSame($this->objectManager, $emHelper->getEntityManager());
+    }
+
+    private function skipWithoutEntityManagerHelper(): void
+    {
+        if (class_exists(EntityManagerHelper::class)) {
+            return;
+        }
+
+        // ORM 3 removed the console helper set; commands take an
+        // EntityManagerProvider instead.
+        $this->markTestSkipped('ORM 3 does not provide EntityManagerHelper.');
     }
 
     /** @dataProvider dataProviderForTestValidCommands */
@@ -114,6 +131,10 @@ class CliConfiguratorTest extends TestCase
             $this->markTestIncomplete(
                 'Migrations must be installed to run this test.',
             );
+        }
+
+        if (! class_exists($className)) {
+            $this->markTestSkipped($className . ' is not shipped by the installed ORM/DBAL version.');
         }
 
         $application = new Application();

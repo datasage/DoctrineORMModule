@@ -23,32 +23,38 @@ on:
 jobs:
   phpunit:
     name: "PHPUnit"
-    runs-on: "ubuntu-20.04"
+    runs-on: "ubuntu-22.04"
 
     strategy:
       fail-fast: false
       matrix:
         php-version:
-          - "8.1"
           - "8.2"
           - "8.3"
           - "8.4"
-        dbal-version:
-          - "3.3.0"
+          - "8.5"
+        orm-version:
+          - "^2.20"
+          - "^3.0"
         dependencies:
           - "highest"
         optional-dependencies:
           - true
           - false
         include:
-          - php-version: "8.1"
-            dbal-version: "3.3.0"
+          - php-version: "8.2"
+            orm-version: "^2.20"
             dependencies: "lowest"
             optional-dependencies: false
-          - php-version: "8.1"
-            dbal-version: "3.3.0"
+          - php-version: "8.2"
+            orm-version: "^2.20"
             dependencies: "lowest"
             optional-dependencies: true
+        exclude:
+          # ORM 2 depends on doctrine/persistence ^3, which has no PHP 8.5 release
+          # path once doctrine-laminas-hydrator requires persistence ^4.
+          - php-version: "8.5"
+            orm-version: "^2.20"
 
     services:
       mysql:
@@ -78,17 +84,15 @@ jobs:
 
       - name: "Set COMPOSER_ROOT_VERSION"
         run: |
-          echo "COMPOSER_ROOT_VERSION=${{ inputs.composer-root-version }}" >> $GITHUB_ENV
-        if: "${{ inputs.composer-root-version }}"
+          echo "COMPOSER_ROOT_VERSION=6.4.x-dev" >> $GITHUB_ENV
 
-      - name: "Require specific DBAL version"
-        run: "composer require doctrine/dbal ^${{ matrix.dbal-version }} --no-update"
+      - name: "Require specific ORM version"
+        run: "composer require doctrine/orm '${{ matrix.orm-version }}' --no-update"
 
       - name: "Install dependencies with Composer"
         uses: "ramsey/composer-install@v3"
         with:
           dependency-versions: "${{ matrix.dependencies }}"
-          composer-options: "${{ inputs.composer-options }}"
 
       - name: "Remove optional dependencies"
         if: "! matrix.optional-dependencies"
@@ -113,7 +117,7 @@ jobs:
       - name: "Upload coverage file"
         uses: "actions/upload-artifact@v4"
         with:
-          name: "phpunit-${{ matrix.php-version }}-${{ matrix.dependencies }}-${{ matrix.optional-dependencies }}-${{ matrix.dbal-version }}.coverage"
+          name: "phpunit-${{ matrix.php-version }}-${{ matrix.dependencies }}-${{ matrix.optional-dependencies }}-${{ matrix.orm-version }}.coverage"
           path: "coverage.xml"
 
   upload_coverage:
