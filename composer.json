@@ -48,6 +48,12 @@
         "laminas/laminas-developer-tools": "laminas-developer-tools if you want to profile operations executed by the ORM during development",
         "laminas/laminas-form": "if you want to use form elements backed by Doctrine"
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/datasage/DoctrineModule.git"
+        }
+    ],
     "autoload": {
         "psr-4": {
             "DoctrineORMModule\\": "src/"
@@ -82,11 +88,5 @@
         "phpstan": "phpstan analyse",
         "test": "phpunit --colors=always",
         "test-coverage": "phpunit --colors=always --coverage-clover=coverage.xml"
-    },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/datasage/DoctrineModule.git"
-        }
-    ]
+    }
 }
