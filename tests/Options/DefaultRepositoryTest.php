@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DoctrineORMModuleTest\Collector;
+namespace DoctrineORMModuleTest\Options;
 
 use DoctrineORMModuleTest\Assets\Entity\EntityWithoutRepository;
 use DoctrineORMModuleTest\Assets\RepositoryClass;

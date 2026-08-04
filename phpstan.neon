@@ -15,12 +15,6 @@ parameters:
           message: '#Method .*DBALConnection::getDriverClass\(\) never returns null#'
           path: src/Options/DBALConnection.php
         -
-          message: '#Offset mixed on array\{\} in isset\(\) does not exist#'
-          path: src/Yuml/MetadataGrapher.php
-        -
-          message: '#Return type .* of method DoctrineORMModule\\Yuml\\YumlController::indexAction\(\)#'
-          path: src/Yuml/YumlController.php
-        -
           message: '#Parameter \#1 .* of method DoctrineORMModule\\Options\\Configuration.* stdClass given#'
           path: tests/Options/ConfigurationOptionsTest.php
 includes:

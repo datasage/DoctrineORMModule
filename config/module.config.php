@@ -7,7 +7,6 @@ use Doctrine\Persistence\Mapping\Driver\MappingDriverChain;
 use DoctrineModule\Form\Element;
 use DoctrineORMModule\CliConfigurator;
 use DoctrineORMModule\Service;
-use DoctrineORMModule\Yuml;
 
 $result = [
     'doctrine' => [
@@ -118,18 +117,6 @@ $result = [
             'orm_default' => [],
         ],
 
-        // SQL logger collector, used when Laminas\DeveloperTools and its toolbar are active
-        'sql_logger_collector' => [
-            // configuration for the `doctrine.sql_logger_collector.orm_default` service
-            'orm_default' => [],
-        ],
-
-        // mappings collector, used when Laminas\DeveloperTools and its toolbar are active
-        'mapping_collector' => [
-            // configuration for the `doctrine.sql_logger_collector.orm_default` service
-            'orm_default' => [],
-        ],
-
         // entity resolver configuration, allows mapping associations to interfaces
         'entity_resolver' => [
             // configuration for the `doctrine.entity_resolver.orm_default` service
@@ -220,8 +207,6 @@ $result = [
         'configuration'            => Service\ConfigurationFactory::class,
         'entitymanager'            => Service\EntityManagerFactory::class,
         'entity_resolver'          => Service\EntityResolverFactory::class,
-        'sql_logger_collector'     => Service\SQLLoggerCollectorFactory::class,
-        'mapping_collector'        => Service\MappingCollectorFactory::class,
         'migrations_cmd'           => Service\MigrationsCommandFactory::class,
     ],
 
@@ -245,50 +230,6 @@ $result = [
         ],
     ],
 
-    ////////////////////////////////////////////////////////////////////
-    // `laminas/laminas-developer-tools` specific settings            //
-    // ignore these if you're not developing additional features for  //
-    // laminas developer tools                                        //
-    ////////////////////////////////////////////////////////////////////
-
-    'router' => [
-        'routes' => [
-            'doctrine_orm_module_yuml' => [
-                'type' => 'literal',
-                'options' => [
-                    'route' => '/ocra_service_manager_yuml',
-                    'defaults' => [
-                        'controller' => Yuml\YumlController::class,
-                        'action'     => 'index',
-                    ],
-                ],
-            ],
-        ],
-    ],
-
-    'view_manager' => [
-        'template_map' => [
-            'laminas-developer-tools/toolbar/doctrine-orm-queries'
-                => __DIR__ . '/../view/laminas-developer-tools/toolbar/doctrine-orm-queries.phtml',
-            'laminas-developer-tools/toolbar/doctrine-orm-mappings'
-                => __DIR__ . '/../view/laminas-developer-tools/toolbar/doctrine-orm-mappings.phtml',
-        ],
-    ],
-
-    'laminas-developer-tools' => [
-        'profiler' => [
-            'collectors' => [
-                'doctrine.sql_logger_collector.orm_default' => 'doctrine.sql_logger_collector.orm_default',
-                'doctrine.mapping_collector.orm_default'    => 'doctrine.mapping_collector.orm_default',
-            ],
-        ],
-        'toolbar' => [
-            'entries' => [
-                'doctrine.sql_logger_collector.orm_default' => 'laminas-developer-tools/toolbar/doctrine-orm-queries',
-                'doctrine.mapping_collector.orm_default'    => 'laminas-developer-tools/toolbar/doctrine-orm-mappings',
-            ],
-        ],
-    ],
 ];
 
 if (class_exists(ImportCommand::class)) {
