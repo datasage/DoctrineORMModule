@@ -11,6 +11,12 @@ parameters:
           identifier: method.alreadyNarrowedType
         -
           identifier: function.alreadyNarrowedType
+        # ServiceListener::addServiceManager() is documented as taking a string,
+        # but explicitly handles a ServiceManager instance too - which is what
+        # laminas-mvc itself passed for the "service_manager" key.
+        -
+          identifier: argument.type
+          path: tests/ServiceManagerFactory.php
         -
           message: '#Method .*DBALConnection::getDriverClass\(\) never returns null#'
           path: src/Options/DBALConnection.php

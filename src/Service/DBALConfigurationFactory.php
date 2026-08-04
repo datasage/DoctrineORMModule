@@ -45,7 +45,7 @@ class DBALConfigurationFactory implements FactoryInterface
     public function setupDBALConfiguration(ContainerInterface $serviceLocator, Configuration $config): void
     {
         $options = $this->getOptions($serviceLocator);
-        $config->setResultCacheImpl($serviceLocator->get($options->resultCache));
+        $config->setResultCache($serviceLocator->get($options->resultCache));
 
         $sqlLogger = $options->sqlLogger;
         if (is_string($sqlLogger) && $serviceLocator->has($sqlLogger)) {

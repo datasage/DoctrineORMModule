@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace DoctrineORMModuleTest\Service;
 
-use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Connection as DBALConnection;
 use Doctrine\DBAL\Driver\PDO\SQLite\Driver;
@@ -12,15 +11,12 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\Configuration;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
-use DoctrineModule\Cache\LaminasStorageCache;
 use DoctrineORMModule\Service\ConfigurationFactory;
 use DoctrineORMModule\Service\DBALConnectionFactory;
 use DoctrineORMModuleTest\Assets\Types\MoneyType;
-use Laminas\Cache\Storage\Adapter\Memory;
 use Laminas\ServiceManager\ServiceManager;
 use PHPUnit\Framework\TestCase;
-
-use function class_exists;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 /** @covers \DoctrineORMModule\Service\DBALConnectionFactory */
 class DBALConnectionFactoryTest extends TestCase
@@ -32,11 +28,7 @@ class DBALConnectionFactoryTest extends TestCase
     {
         $this->serviceManager = new ServiceManager();
         $this->factory        = new DBALConnectionFactory('orm_default');
-        // Set up appropriate cache based on DoctrineModule version detection:
-        $arrayCache = class_exists(ArrayCache::class)
-            ? new ArrayCache()                          // DoctrineModule 5
-            : new LaminasStorageCache(new Memory());    // DoctrineModule 6
-        $this->serviceManager->setService('doctrine.cache.array', $arrayCache);
+        $this->serviceManager->setService('doctrine.cache.array', new ArrayAdapter());
         $this->serviceManager->setService('doctrine.eventmanager.orm_default', new EventManager());
     }
 

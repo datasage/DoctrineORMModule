@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace DoctrineORMModuleTest\Service;
 
-use Doctrine\Common\Cache\ArrayCache;
-use Doctrine\Common\Cache\Psr6\CacheAdapter;
 use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Driver\Middleware;
 use Doctrine\ORM\Cache\CacheConfiguration;
@@ -15,20 +13,19 @@ use Doctrine\ORM\Mapping\EntityListenerResolver;
 use Doctrine\ORM\Mapping\NamingStrategy;
 use Doctrine\ORM\Mapping\QuoteStrategy;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
-use DoctrineModule\Cache\LaminasStorageCache;
 use DoctrineORMModule\Options\Configuration;
 use DoctrineORMModule\Service\ConfigurationFactory;
 use DoctrineORMModuleTest\Assets\RepositoryClass;
-use Laminas\Cache\Storage\Adapter\Memory;
 use Laminas\ServiceManager\Exception\InvalidArgumentException;
 use Laminas\ServiceManager\ServiceManager;
 use PHPUnit\Framework\TestCase;
+use Psr\Cache\CacheItemPoolInterface;
 use ReflectionProperty;
 use stdClass;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use UnexpectedValueException;
 
 use function assert;
-use function class_exists;
 use function get_class;
 
 class ConfigurationFactoryTest extends TestCase
@@ -47,12 +44,9 @@ class ConfigurationFactoryTest extends TestCase
         );
     }
 
-    protected function getArrayCacheInstance(): object
+    protected function getArrayCacheInstance(): CacheItemPoolInterface
     {
-        // Set up appropriate cache based on DoctrineModule version detection:
-        return class_exists(ArrayCache::class)
-            ? new ArrayCache()                          // DoctrineModule 5
-            : new LaminasStorageCache(new Memory());    // DoctrineModule 6
+        return new ArrayAdapter();
     }
 
     public function testWillInstantiateConfigWithoutNamingStrategySetting(): void
@@ -175,7 +169,7 @@ class ConfigurationFactoryTest extends TestCase
         $this->serviceManager->setService('config', $config);
         $factory   = new ConfigurationFactory('test_default');
         $ormConfig = $factory($this->serviceManager, Configuration::class);
-        $this->assertInstanceOf(get_class($this->getArrayCacheInstance()), $ormConfig->getHydrationCacheImpl());
+        $this->assertInstanceOf(get_class($this->getArrayCacheInstance()), $ormConfig->getHydrationCache());
     }
 
     public function testCanSetDefaultRepositoryClass(): void
@@ -195,7 +189,7 @@ class ConfigurationFactoryTest extends TestCase
 
         $factory   = new ConfigurationFactory('test_default');
         $ormConfig = $factory($this->serviceManager, Configuration::class);
-        $this->assertInstanceOf(get_class($this->getArrayCacheInstance()), $ormConfig->getHydrationCacheImpl());
+        $this->assertInstanceOf(get_class($this->getArrayCacheInstance()), $ormConfig->getHydrationCache());
     }
 
     public function testAcceptsMetadataFactory(): void
@@ -383,11 +377,11 @@ class ConfigurationFactoryTest extends TestCase
 
         // Doctrine does not allow to retrieve the cache adapter from cache factory, so we are forced to use
         // reflection here
-        $reflProperty = new ReflectionProperty($cacheFactory, 'cacheItemPool');
-        $reflProperty->setAccessible(true);
-        $cacheDecorator = $reflProperty->getValue($cacheFactory);
-        $this->assertInstanceOf(CacheAdapter::class, $cacheDecorator);
-        $this->assertInstanceOf(get_class($this->getArrayCacheInstance()), $cacheDecorator->getCache());
+        $reflProperty  = new ReflectionProperty($cacheFactory, 'cacheItemPool');
+        $cacheItemPool = $reflProperty->getValue($cacheFactory);
+        // The result cache is a PSR-6 pool now, so it is handed to the cache
+        // factory as-is rather than being wrapped in a doctrine/cache adapter.
+        $this->assertInstanceOf($this->getArrayCacheInstance()::class, $cacheItemPool);
     }
 
     public function testConfigureMiddlewares(): void

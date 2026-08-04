@@ -60,10 +60,10 @@ final class ConfigurationFactory extends DoctrineConfigurationFactory
             $config->addFilter($name, $class);
         }
 
-        $config->setMetadataCacheImpl($serviceLocator->get($options->getMetadataCache()));
-        $config->setQueryCacheImpl($serviceLocator->get($options->getQueryCache()));
-        $config->setResultCacheImpl($serviceLocator->get($options->getResultCache()));
-        $config->setHydrationCacheImpl($serviceLocator->get($options->getHydrationCache()));
+        $config->setMetadataCache($serviceLocator->get($options->getMetadataCache()));
+        $config->setQueryCache($serviceLocator->get($options->getQueryCache()));
+        $config->setResultCache($serviceLocator->get($options->getResultCache()));
+        $config->setHydrationCache($serviceLocator->get($options->getHydrationCache()));
         $config->setMetadataDriverImpl($serviceLocator->get($options->getDriver()));
 
         $namingStrategy = $options->getNamingStrategy();

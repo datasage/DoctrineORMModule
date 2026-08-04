@@ -15,9 +15,9 @@
         "ext-json": "*",
         "doctrine/dbal": "^3.3.2",
         "doctrine/doctrine-laminas-hydrator": "^3.2.0",
-        "doctrine/doctrine-module": "^6.3.0",
+        "doctrine/doctrine-module": "^6.4.1",
         "doctrine/event-manager": "^2.0.0",
-        "doctrine/orm": "^2.13.0",
+        "doctrine/orm": "^2.20.0",
         "doctrine/persistence": "^3.0.0",
         "laminas/laminas-eventmanager": "^3.5.0",
         "laminas/laminas-modulemanager": "^2.11.0",
@@ -28,16 +28,16 @@
         "symfony/console": "^6.1.2 || ^7.0.0"
     },
     "require-dev": {
+        "doctrine/annotations": "^2.0.0",
         "doctrine/coding-standard": "^12.0.0",
         "doctrine/data-fixtures": "^2.0.1",
         "doctrine/migrations": "^3.8.0",
-        "laminas/laminas-cache-storage-adapter-filesystem": "^2.0",
-        "laminas/laminas-cache-storage-adapter-memory": "^2.0",
         "laminas/laminas-i18n": "^2.23.0",
         "laminas/laminas-serializer": "^2.12.0",
         "phpstan/phpstan": "^2.0.4",
         "phpstan/phpstan-phpunit": "^2.0.3",
-        "phpunit/phpunit": "^10.5.40"
+        "phpunit/phpunit": "^10.5.40",
+        "symfony/cache": "^6.4.0 || ^7.0.0 || ^8.0.0"
     },
     "conflict": {
         "doctrine/data-fixtures": "<2.0",
@@ -83,5 +83,11 @@
         "phpstan": "phpstan analyse",
         "test": "phpunit --colors=always",
         "test-coverage": "phpunit --colors=always --coverage-clover=coverage.xml"
-    }
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/datasage/DoctrineModule.git"
+        }
+    ]
 }
