@@ -28,7 +28,6 @@
         "symfony/console": "^6.1.2 || ^7.0.0"
     },
     "require-dev": {
-        "doctrine/annotations": "^2.0.0",
         "doctrine/coding-standard": "^12.0.0",
         "doctrine/data-fixtures": "^2.0.1",
         "doctrine/migrations": "^3.8.0",
