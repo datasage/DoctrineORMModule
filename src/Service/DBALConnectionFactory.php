@@ -64,14 +64,24 @@ final class DBALConnectionFactory extends AbstractFactory
             ? DriverManager::getConnection($params, $configuration, $eventManager)
             : DriverManager::getConnection($params, $configuration);
 
-        foreach ($options->getDoctrineTypeMappings() as $dbType => $doctrineType) {
-            $connection->getDatabasePlatform()->registerDoctrineTypeMapping($dbType, $doctrineType);
-        }
+        $typeMappings   = $options->getDoctrineTypeMappings();
+        $commentedTypes = $options->getDoctrineCommentedTypes();
 
-        // DBAL 4 dropped type comments entirely, along with this method.
-        if (method_exists($connection->getDatabasePlatform(), 'markDoctrineTypeCommented')) {
-            foreach ($options->getDoctrineCommentedTypes() as $type) {
-                $connection->getDatabasePlatform()->markDoctrineTypeCommented(Type::getType($type));
+        // Resolving the platform makes DBAL connect, so only do it when there is
+        // something to apply. Otherwise merely building a connection service
+        // would open a socket.
+        if ($typeMappings || $commentedTypes) {
+            $platform = $connection->getDatabasePlatform();
+
+            foreach ($typeMappings as $dbType => $doctrineType) {
+                $platform->registerDoctrineTypeMapping($dbType, $doctrineType);
+            }
+
+            // DBAL 4 dropped type comments entirely, along with this method.
+            if (method_exists($platform, 'markDoctrineTypeCommented')) {
+                foreach ($commentedTypes as $type) {
+                    $platform->markDoctrineTypeCommented(Type::getType($type));
+                }
             }
         }
 

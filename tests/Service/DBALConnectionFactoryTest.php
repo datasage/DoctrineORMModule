@@ -6,6 +6,7 @@ namespace DoctrineORMModuleTest\Service;
 
 use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Connection as DBALConnection;
+use Doctrine\DBAL\Driver\PDO\MySQL\Driver as MySQLDriver;
 use Doctrine\DBAL\Driver\PDO\SQLite\Driver;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\Type;
@@ -55,6 +56,44 @@ class DBALConnectionFactoryTest extends TestCase
         $this->serviceManager->setService('Configuration', $config);
 
         $dbal = ($this->factory)($this->serviceManager, DBALConnection::class);
+        $this->assertFalse($dbal->isConnected());
+    }
+
+    /**
+     * Resolving the platform makes DBAL connect on servers whose version has to
+     * be negotiated, so building a connection service with nothing to apply must
+     * not touch it. SQLite resolves its platform without connecting, which is
+     * why testNoConnectWithoutCustomMappingsAndCommentedTypes cannot catch this.
+     */
+    public function testDoesNotResolvePlatformWhenThereIsNothingToApply(): void
+    {
+        $config            = [
+            'doctrine' => [
+                'connection' => [
+                    'orm_default' => [
+                        'driverClass' => MySQLDriver::class,
+                        // Deliberately unreachable: any connection attempt fails.
+                        'params' => [
+                            'host' => '127.0.0.1',
+                            'port' => 1,
+                            'user' => 'nobody',
+                            'password' => '',
+                            'dbname' => 'nothing',
+                        ],
+                    ],
+                ],
+            ],
+        ];
+        $configurationMock = $this->getMockBuilder(Configuration::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->serviceManager->setService('doctrine.configuration.orm_default', $configurationMock);
+        $this->serviceManager->setService('config', $config);
+        $this->serviceManager->setService('Configuration', $config);
+
+        $dbal = ($this->factory)($this->serviceManager, DBALConnection::class);
+
         $this->assertFalse($dbal->isConnected());
     }
 
