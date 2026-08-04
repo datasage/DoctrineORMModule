@@ -148,15 +148,6 @@ final class ConfigurationFactory extends DoctrineConfigurationFactory
             $config->setSecondLevelCacheConfiguration($cacheConfiguration);
         }
 
-        // only works for DBAL 2.x, not for 3.x
-        if (method_exists($config, 'setFilterSchemaAssetsExpression')) {
-            $filterSchemaAssetsExpression = $options->getFilterSchemaAssetsExpression();
-            if ($filterSchemaAssetsExpression) {
-                $config->setFilterSchemaAssetsExpression($filterSchemaAssetsExpression);
-            }
-        }
-
-        // DBAL 2.x
         if (method_exists($config, 'setSchemaAssetsFilter')) {
             $schemaAssetsFilter = $options->getSchemaAssetsFilter();
             if ($schemaAssetsFilter) {

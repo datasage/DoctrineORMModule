@@ -392,10 +392,6 @@ class ConfigurationFactoryTest extends TestCase
 
     public function testConfigureMiddlewares(): void
     {
-        if (! class_exists(Middleware::class)) {
-            $this->markTestSkipped('Middleware feature not exists in DBAL v2');
-        }
-
         $config = [
             'doctrine' => [
                 'configuration' => [
@@ -421,10 +417,6 @@ class ConfigurationFactoryTest extends TestCase
 
     public function testConfigureMiddlewaresNotExisting(): void
     {
-        if (! class_exists(Middleware::class)) {
-            $this->markTestSkipped('Middleware feature not exists in DBAL v2');
-        }
-
         $config = [
             'doctrine' => [
                 'configuration' => [
@@ -444,10 +436,6 @@ class ConfigurationFactoryTest extends TestCase
 
     public function testConfigureWrongMiddlewares(): void
     {
-        if (! class_exists(Middleware::class)) {
-            $this->markTestSkipped('Middleware feature not exists in DBAL v2');
-        }
-
         $config = [
             'doctrine' => [
                 'configuration' => [

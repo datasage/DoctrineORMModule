@@ -173,6 +173,10 @@ final class Configuration extends DBALConfiguration
 
     /**
      * Configuration option for the filter schema assets expression
+     *
+     * @deprecated 6.4.0 Only DBAL 2 supported this, and DBAL 3 is the minimum.
+     *             The value is retained but no longer applied; use
+     *             schemaAssetsFilter instead.
      */
     protected string|null $filterSchemaAssetsExpression = null;
 
