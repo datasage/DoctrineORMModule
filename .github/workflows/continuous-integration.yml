@@ -24,6 +24,9 @@ jobs:
   phpunit:
     name: "PHPUnit"
     runs-on: "ubuntu-22.04"
+    env:
+      # laminas dependencies do not declare PHP 8.6 support yet
+      COMPOSER_IGNORE_PLATFORM_REQ: "${{ matrix.php-version == '8.6' && 'php+' || '' }}"
 
     strategy:
       fail-fast: false
@@ -33,6 +36,7 @@ jobs:
           - "8.3"
           - "8.4"
           - "8.5"
+          - "8.6"
         orm-version:
           - "^2.20"
           - "^3.0"
@@ -54,6 +58,8 @@ jobs:
           # ORM 2 depends on doctrine/persistence ^3, which has no PHP 8.5 release
           # path once doctrine-laminas-hydrator requires persistence ^4.
           - php-version: "8.5"
+            orm-version: "^2.20"
+          - php-version: "8.6"
             orm-version: "^2.20"
 
     services:
