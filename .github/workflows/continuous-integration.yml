@@ -102,7 +102,7 @@ jobs:
 
       - name: "Remove optional dependencies"
         if: "! matrix.optional-dependencies"
-        run: "composer remove --dev doctrine/data-fixtures doctrine/migrations"
+        run: "composer remove --dev doctrine/data-fixtures doctrine/migrations laminas/laminas-form"
 
       - name: "Configure test application"
         run: "cp ci/config/application.config.php config/application.config.php"
