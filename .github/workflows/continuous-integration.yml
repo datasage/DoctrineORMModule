@@ -100,9 +100,15 @@ jobs:
         with:
           dependency-versions: "${{ matrix.dependencies }}"
 
+      # "composer remove" fails when another package still requires one of
+      # these (older doctrine-module releases require laminas-form), so drop
+      # the requirements and let a minimal update remove what is unused.
       - name: "Remove optional dependencies"
         if: "! matrix.optional-dependencies"
-        run: "composer remove --dev doctrine/data-fixtures doctrine/migrations"
+        run: |
+          composer remove --dev --no-update doctrine/data-fixtures doctrine/migrations laminas/laminas-form
+          composer update --minimal-changes ${{ matrix.dependencies == 'lowest' && '--prefer-lowest' || '' }} doctrine/data-fixtures doctrine/migrations laminas/laminas-form
+          composer show laminas/laminas-form || echo "laminas/laminas-form is not installed"
 
       - name: "Configure test application"
         run: "cp ci/config/application.config.php config/application.config.php"

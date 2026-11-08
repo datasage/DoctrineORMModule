@@ -20,12 +20,22 @@ use Laminas\Form\Element\Number;
 use Laminas\Form\Element\Textarea;
 use Laminas\Form\Element\Time;
 
+use function class_exists;
+use function sprintf;
+
 class DoctrineAnnotationListenerTest extends TestCase
 {
     protected DoctrineAnnotationListener $listener;
 
     public function setUp(): void
     {
+        if (! class_exists(Element::class)) {
+            $this->markTestSkipped(sprintf(
+                '%s requires laminas-form to be installed.',
+                DoctrineAnnotationListener::class,
+            ));
+        }
+
         $this->listener = new DoctrineAnnotationListener($this->getEntityManager());
     }
 
