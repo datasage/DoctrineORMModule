@@ -110,11 +110,9 @@ class DBALConnectionFactoryTest extends TestCase
                 ],
             ],
         ];
-        $configurationMock = $this->getMockBuilder(Configuration::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $this->serviceManager->setService('doctrine.configuration.orm_default', $configurationMock);
+        // A real Configuration: DBAL 4.6 resolves type mappings through the configuration's
+        // type provider, which a mock answers with "no such type".
+        $this->serviceManager->setService('doctrine.configuration.orm_default', new Configuration());
         $this->serviceManager->setService('config', $config);
         $this->serviceManager->setService('Configuration', $config);
 
