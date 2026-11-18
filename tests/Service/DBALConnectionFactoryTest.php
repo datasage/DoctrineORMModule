@@ -99,7 +99,7 @@ class DBALConnectionFactoryTest extends TestCase
 
     public function testDoctrineMappingTypeReturnCorrectParent(): void
     {
-        $config            = [
+        $config = [
             'doctrine' => [
                 'connection' => [
                     'orm_default' => [
