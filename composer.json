@@ -32,6 +32,7 @@
         "doctrine/coding-standard": "^12.0.0",
         "doctrine/data-fixtures": "^2.0.1",
         "doctrine/migrations": "^3.8.0",
+        "doctrine/orm-plugin-second-level-cache": "^1.0.2",
         "laminas/laminas-form": "^3.4.1",
         "laminas/laminas-i18n": "^2.31.0",
         "phpstan/phpstan": "^2.0.4",
@@ -46,6 +47,7 @@
     },
     "suggest": {
         "doctrine/migrations": "doctrine migrations if you want to keep your schema definitions versioned",
+        "doctrine/orm-plugin-second-level-cache": "required for second_level_cache configuration with doctrine/orm 3.8 or newer",
         "laminas/laminas-developer-tools": "laminas-developer-tools if you want to profile operations executed by the ORM during development",
         "laminas/laminas-form": "if you want to use form elements backed by Doctrine"
     },
